@@ -1,0 +1,312 @@
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { PrismaService } from '../../../config';
+import { CreatePacientDto, UpdatePacientDto } from 'src/view/dto';
+import { Prisma, PrismaClient } from '@prisma/client';
+import { HospitalService } from 'src/context/service/hospital/hospital.service';
+
+@Injectable()
+export class PacientEntity {
+  constructor(
+    private prisma: PrismaService,
+    private hospitalService: HospitalService,
+  ) {}
+
+  async create(hospital: string, input: CreatePacientDto) {
+    const prisma = await this.setDatabase(hospital);
+
+    if (!input.departmentId) {
+      throw new Error('Department ID is missing');
+    }
+
+    const department = await prisma.department.findUnique({
+      where: { id: input.departmentId },
+    });
+
+    if (!department) {
+      throw new Error('Department not found');
+    }
+
+    const patientData: Prisma.PatientCreateInput = {
+      fullName: input.fullName,
+      medicalRecordNumber: input.medicalRecordNumber,
+      birthDate: new Date(input.birthDate),
+      status: input.status,
+      exams: input.exams,
+      watcher: input.watcher,
+      medicalBackGround: input.medicalBackGround,
+      gender: input.gender,
+      medicalBed: input.medicalBed,
+      lastUpdater: input.lastUpdater,
+      dateOfAdmission: new Date(input.dateOfAdmission),
+      heartBeat: input.heartBeat,
+      fluidBalance: input.fluidBalance,
+      respoiratoryRate: input.respoiratoryRate,
+      arterialPressure: input.arterialPressure,
+      oxygenSaturation: input.oxygenSaturation,
+      department: {
+        connect: { id: input.departmentId }, // Conectar o departamento usando `connect`
+      },
+      impressions: {
+        create: input.impressions.map((imp) => ({
+          content: imp.content,
+          assignedTo: imp.assignedTo,
+        })),
+      },
+      activeProblem: {
+        create: input.activeProblem.map((ap) => ({
+          description: ap.description,
+          assignedTo: ap.assignedTo,
+        })),
+      },
+      cultures: {
+        create: input.cultures.map((culture) => ({
+          material: culture.material,
+          germs: culture.germs,
+          collectionDate: culture.collectionDate,
+        })),
+      },
+      devices: {
+        create: input.devices.map((device) => ({
+          name: device.name,
+          applicationDate: device.applicationDate,
+          removalDate: device.removalDate,
+        })),
+      },
+      pendencies: {
+        create: input.pendencies.map((pendency) => ({
+          title: pendency.title,
+          completed: pendency.completed,
+          removed: pendency.removed,
+          assignedTo: pendency.assignedTo,
+        })),
+      },
+      antibiotics: {
+        create: input.antibiotics.map((antibiotic) => ({
+          name: antibiotic.name,
+          applicationDate: antibiotic.applicationDate,
+          removalDate: antibiotic.removalDate,
+        })),
+      },
+      bloodGlucose: {
+        create: input.bloodGlucose.map((bg) => ({
+          title: bg.title,
+          creationDate: bg.creationDate,
+        })),
+      },
+    };
+    await prisma.patient.create({
+      data: patientData,
+    });
+  }
+
+  async findAll(hospital: string) {
+    const prisma = await this.setDatabase(hospital);
+
+    return prisma.patient.findMany({
+      include: {
+        activeProblem: true,
+        department: true,
+        cultures: true,
+        devices: true,
+        pendencies: true,
+        antibiotics: true,
+        impressions: true,
+        bloodGlucose: true,
+      },
+    });
+  }
+
+  async findById(hospital: string, id: string) {
+    const prisma = await this.setDatabase(hospital);
+
+    const patient = await prisma.patient.findUnique({
+      where: { id },
+      include: {
+        activeProblem: true,
+        department: true,
+        cultures: true,
+        devices: true,
+        pendencies: true,
+        antibiotics: true,
+        impressions: true,
+        bloodGlucose: true,
+      },
+    });
+
+    if (!patient) {
+      throw new HttpException('Paciente não encontrado', HttpStatus.NOT_FOUND);
+    }
+
+    return patient;
+  }
+
+  async update(hospital: string, id: string, input: UpdatePacientDto) {
+    const prisma = await this.setDatabase(hospital);
+
+    const currentData = await prisma.patient.findUnique({ where: { id } });
+
+    if (!currentData) {
+      throw new Error('Paciente não encontrado');
+    }
+
+    const updateData: Prisma.PatientUpdateInput = {
+      fullName:
+        input.fullName !== currentData.fullName
+          ? input.fullName
+          : currentData.fullName,
+      medicalRecordNumber:
+        input.medicalRecordNumber !== currentData.medicalRecordNumber
+          ? input.medicalRecordNumber
+          : currentData.medicalRecordNumber,
+      birthDate: input.birthDate
+        ? new Date(input.birthDate)
+        : currentData.birthDate,
+      status:
+        input.status !== currentData.status ? input.status : currentData.status,
+      exams:
+        input.exams !== currentData.exams ? input.exams : currentData.exams,
+      watcher:
+        input.watcher !== currentData.watcher
+          ? input.watcher
+          : currentData.watcher,
+      medicalBackGround:
+        input.medicalBackGround !== currentData.medicalBackGround
+          ? input.medicalBackGround
+          : currentData.medicalBackGround,
+      gender:
+        input.gender !== currentData.gender ? input.gender : currentData.gender,
+      medicalBed:
+        input.medicalBed !== currentData.medicalBed
+          ? input.medicalBed
+          : currentData.medicalBed,
+      lastUpdater:
+        input.lastUpdater !== currentData.lastUpdater
+          ? input.lastUpdater
+          : currentData.lastUpdater,
+      dateOfAdmission: input.dateOfAdmission
+        ? new Date(input.dateOfAdmission)
+        : currentData.dateOfAdmission,
+      heartBeat:
+        input.heartBeat !== currentData.heartBeat
+          ? input.heartBeat
+          : currentData.heartBeat,
+      fluidBalance:
+        input.fluidBalance !== currentData.fluidBalance
+          ? input.fluidBalance
+          : currentData.fluidBalance,
+      respoiratoryRate:
+        input.respoiratoryRate !== currentData.respoiratoryRate
+          ? input.respoiratoryRate
+          : currentData.respoiratoryRate,
+      arterialPressure:
+        input.arterialPressure !== currentData.arterialPressure
+          ? input.arterialPressure
+          : currentData.arterialPressure,
+      oxygenSaturation:
+        input.oxygenSaturation !== currentData.oxygenSaturation
+          ? input.oxygenSaturation
+          : currentData.oxygenSaturation,
+
+      impressions: input.impressions
+        ? {
+            create: input.impressions.map((imp) => ({
+              content: imp.content,
+              assignedTo: imp.assignedTo,
+            })),
+          }
+        : undefined,
+
+      activeProblem: input.activeProblem
+        ? {
+            create: input.activeProblem.map((ap) => ({
+              description: ap.description,
+              assignedTo: ap.assignedTo,
+            })),
+          }
+        : undefined,
+
+      cultures: input.cultures
+        ? {
+            create: input.cultures.map((culture) => ({
+              material: culture.material,
+              germs: culture.germs,
+              collectionDate: culture.collectionDate,
+            })),
+          }
+        : undefined,
+
+      devices: input.devices
+        ? {
+            create: input.devices.map((device) => ({
+              name: device.name,
+              applicationDate: device.applicationDate,
+              removalDate: device.removalDate,
+            })),
+          }
+        : undefined,
+
+      pendencies: input.pendencies
+        ? {
+            create: input.pendencies.map((pendency) => ({
+              title: pendency.title,
+              completed: pendency.completed,
+              removed: pendency.removed,
+              assignedTo: pendency.assignedTo,
+            })),
+          }
+        : undefined,
+
+      antibiotics: input.antibiotics
+        ? {
+            create: input.antibiotics.map((antibiotic) => ({
+              name: antibiotic.name,
+              applicationDate: antibiotic.applicationDate,
+              removalDate: antibiotic.removalDate,
+            })),
+          }
+        : undefined,
+
+      bloodGlucose: input.bloodGlucose
+        ? {
+            create: input.bloodGlucose.map((bg) => ({
+              title: bg.title,
+              creationDate: bg.creationDate,
+            })),
+          }
+        : undefined,
+    };
+
+    await prisma.patient.update({
+      where: { id },
+      data: updateData,
+    });
+  }
+
+  async delete(hospital: string, id: string) {
+    const prisma = await this.setDatabase(hospital);
+
+    // Excluir todas as dependências associadas ao paciente
+    await prisma.impression.deleteMany({ where: { patientId: id } });
+    await prisma.activeProblem.deleteMany({ where: { patientId: id } });
+    await prisma.culture.deleteMany({ where: { patientId: id } });
+    await prisma.device.deleteMany({ where: { patientId: id } });
+    await prisma.pendencie.deleteMany({ where: { patientId: id } });
+    await prisma.antibiotic.deleteMany({ where: { patientId: id } });
+    await prisma.bloodGlucose.deleteMany({ where: { patientId: id } });
+
+    await prisma.patient.delete({
+      where: { id },
+    });
+  }
+
+  private async setDatabase(hospital: string): Promise<PrismaClient> {
+    const hospitalData = await this.hospitalService.getHospitalByName(hospital);
+    if (!hospitalData) {
+      throw new HttpException('Invalid hospital', HttpStatus.BAD_REQUEST);
+    }
+
+    const databaseUrl = `postgres://${process.env.DATABASE_USER}:${process.env.DATABASE_PASS}@${process.env.DATABASE_HOST}:${process.env.DATABASE_PORT}/${process.env.DATABASE_BANK}?schema=${hospitalData.DBName}`;
+
+    return await this.prisma.setDatabaseUrl(databaseUrl);
+  }
+}

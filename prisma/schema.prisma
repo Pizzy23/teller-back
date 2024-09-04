@@ -1,0 +1,177 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl", "rhel-openssl-1.0.x"]
+}
+
+enum StatusEnum {
+  STABLE
+  UNSTABLE
+  UNDER_OBSERVATION
+  EXPECTED_DISCHARGE
+  DISCHARGED
+  EXTERNAL_TRANSFER
+  WARD_TRANSFER
+  HOME_TRANSFER
+  DECEASE
+}
+
+enum GenderEnum {
+  MASCULINO
+  FEMININO
+  OUTRO
+}
+
+model Department {
+  id String @id @default(uuid())
+
+  title      String?
+  patients   Patient[]
+  side       String?
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+}
+
+model Patient {
+  id String @id @default(uuid())
+
+  fullName            String?
+  medicalRecordNumber String?
+  birthDate           DateTime?
+  status              StatusEnum @default(STABLE)
+  exams               String?
+  watcher             Boolean    @default(false)
+  medicalBackGround   String[]
+  gender              GenderEnum @default(MASCULINO)
+  medicalBed          String
+  lastUpdater         String?
+  dateOfAdmission     DateTime?
+
+  heartBeat        String?
+  fluidBalance     String?
+  respoiratoryRate String?
+  arterialPressure String?
+  oxygenSaturation String?
+
+  activeProblem ActiveProblem[]
+  impressions   Impression[]
+
+  cultures     Culture[]
+  devices      Device[]
+  pendencies   Pendencie[]
+  antibiotics  Antibiotic[]
+  bloodGlucose BloodGlucose[]
+
+  created_at   DateTime   @default(now())
+  updated_at   DateTime   @updatedAt
+  department   Department @relation(fields: [departmentId], references: [id])
+  departmentId String
+
+  @@index([departmentId])
+}
+
+model BloodGlucose {
+  id String @id @default(uuid())
+
+  title        String?
+  creationDate String?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  Patient    Patient  @relation(fields: [patientId], references: [id])
+  patientId  String
+}
+
+model Antibiotic {
+  id String @id @default(uuid())
+
+  name            String
+  applicationDate String?
+  removalDate     String?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  Patient    Patient  @relation(fields: [patientId], references: [id])
+  patientId  String
+}
+
+enum RemovedPendencieEnum {
+  NAN
+  HUMAN_ERROR
+  SYSTEM_ERROR
+  CHANGE_OF_CONDUCT
+}
+
+model Pendencie {
+  id String @id @default(uuid())
+
+  title      String
+  completed  Boolean?
+  removed    RemovedPendencieEnum?
+  assignedTo String
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  Patient    Patient  @relation(fields: [patientId], references: [id])
+  patientId  String
+
+  @@index([patientId, removed, completed, assignedTo])
+}
+
+model Device {
+  id String @id @default(uuid())
+
+  name            String
+  applicationDate String?
+  removalDate     String?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  patientId  String
+  Patient    Patient  @relation(fields: [patientId], references: [id])
+}
+
+model Culture {
+  id String @id @default(uuid())
+
+  material       String
+  germs          String[]
+  collectionDate String?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  Patient    Patient  @relation(fields: [patientId], references: [id])
+  patientId  String
+}
+
+model Impression {
+  id String @id @default(uuid())
+
+  content    String
+  assignedTo String
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  Patient    Patient  @relation(fields: [patientId], references: [id])
+  patientId  String
+
+  @@index([patientId, assignedTo])
+}
+
+model ActiveProblem {
+  id String @id @default(uuid())
+
+  description String
+  assignedTo  String
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  Patient    Patient  @relation(fields: [patientId], references: [id])
+  patientId  String
+
+  @@index([patientId, assignedTo])
+}

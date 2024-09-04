@@ -1,0 +1,36 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node-terminal",
+      "name": "debug",
+      "request": "launch",
+      "command": "npm run start:debug"
+    },
+    {
+      "type": "node-terminal",
+      "name": "dev",
+      "request": "launch",
+      "command": "npm run start:dev"
+    },
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "cppdbg",
+      "request": "launch",
+      "args": [],
+      "stopAtEntry": false,
+      "externalConsole": true,
+      "cwd": "c:/Users/luizc/ProjectWorks/Hackaton/Crea/src/context/services",
+      "program": "c:/Users/luizc/ProjectWorks/Hackaton/Crea/src/context/services/build/Debug/outDebug",
+      "MIMode": "gdb",
+      "miDebuggerPath": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    }
+  ]
+}
