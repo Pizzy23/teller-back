@@ -11,7 +11,7 @@ export class PacientEntity {
     private hospitalService: HospitalService,
   ) {}
 
-  async create(hospital: string, input: CreatePacientDto) {
+  async create(hospital: string, input: CreatePacientDto, userType: string) {
     const prisma = await this.setDatabase(hospital);
 
     if (!input.departmentId) {
@@ -43,8 +43,9 @@ export class PacientEntity {
       respoiratoryRate: input.respoiratoryRate,
       arterialPressure: input.arterialPressure,
       oxygenSaturation: input.oxygenSaturation,
+      doctorType: userType,
       department: {
-        connect: { id: input.departmentId }, // Conectar o departamento usando `connect`
+        connect: { id: input.departmentId },
       },
       impressions: {
         create: input.impressions.map((imp) => ({
@@ -99,10 +100,13 @@ export class PacientEntity {
     });
   }
 
-  async findAll(hospital: string) {
+  async findAll(hospital: string, userType: string) {
     const prisma = await this.setDatabase(hospital);
 
     return prisma.patient.findMany({
+      where: {
+        doctorType: userType,
+      },
       include: {
         activeProblem: true,
         department: true,
@@ -140,7 +144,12 @@ export class PacientEntity {
     return patient;
   }
 
-  async update(hospital: string, id: string, input: UpdatePacientDto) {
+  async update(
+    hospital: string,
+    id: string,
+    input: UpdatePacientDto,
+    userType: string,
+  ) {
     const prisma = await this.setDatabase(hospital);
 
     const currentData = await prisma.patient.findUnique({ where: { id } });
@@ -183,6 +192,8 @@ export class PacientEntity {
         input.lastUpdater !== currentData.lastUpdater
           ? input.lastUpdater
           : currentData.lastUpdater,
+      doctorType:
+        userType !== currentData.doctorType ? userType : currentData.doctorType,
       dateOfAdmission: input.dateOfAdmission
         ? new Date(input.dateOfAdmission)
         : currentData.dateOfAdmission,
@@ -285,7 +296,6 @@ export class PacientEntity {
   async delete(hospital: string, id: string) {
     const prisma = await this.setDatabase(hospital);
 
-    // Excluir todas as dependências associadas ao paciente
     await prisma.impression.deleteMany({ where: { patientId: id } });
     await prisma.activeProblem.deleteMany({ where: { patientId: id } });
     await prisma.culture.deleteMany({ where: { patientId: id } });

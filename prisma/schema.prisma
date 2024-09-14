@@ -56,6 +56,7 @@ model Patient {
   respoiratoryRate String?
   arterialPressure String?
   oxygenSaturation String?
+  doctorType       String?
 
   activeProblem ActiveProblem[]
   impressions   Impression[]
