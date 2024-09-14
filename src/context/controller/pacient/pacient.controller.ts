@@ -12,7 +12,7 @@ import {
 import { ApiOperation, ApiTags, ApiParam, ApiBody } from '@nestjs/swagger';
 import { CreatePacientDto, UpdatePacientDto } from 'src/view/dto';
 import { AuthGuard } from '@nestjs/passport';
-import { Request } from 'express';
+import { Request } from 'expressC';
 import { PacientService } from 'src/context/service';
 
 @ApiTags('Pacient')
