@@ -1,10 +1,12 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.useGlobalGuards(new (AuthGuard('jwt'))());
   // Enable CORS globally
   app.enableCors({
     origin: '*',
