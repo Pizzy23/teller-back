@@ -6,8 +6,8 @@ import { AuthGuard } from '@nestjs/passport';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.useGlobalGuards(new (AuthGuard('jwt'))());
-  // Enable CORS globally
+  //app.useGlobalGuards(new (AuthGuard('jwt'))());
+
   app.enableCors({
     origin: '*',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',

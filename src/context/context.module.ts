@@ -8,6 +8,7 @@ import { PermissionService } from './service/permissions/permission.service';
 import { HttpModule } from '@nestjs/axios';
 import { DepartamentController } from './controller/departament/departament.controller';
 import { DepartamentEntity } from './entity/departament/departament.entity';
+import { CognitoStrategy } from 'src/config/middleware/cognito.strategy';
 
 @Module({
   imports: [HttpModule],
@@ -20,6 +21,7 @@ import { DepartamentEntity } from './entity/departament/departament.entity';
     PermissionService,
     DepartamentService,
     DepartamentEntity,
+    CognitoStrategy,
   ],
   exports: [PrismaService],
 })
