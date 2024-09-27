@@ -38,16 +38,16 @@ export class HospitalService {
 
       switch (response.status) {
         case 200:
-          console.log('200: Success');
+          console.log('Api External: 200: Success');
           break;
         case 401:
-          console.log('401: Unauthorized');
+          console.log('Api External: 401: Unauthorized');
           break;
         case 404:
-          console.log('404: Not Found');
+          console.log('Api External: 404: Not Found');
           break;
         case 500:
-          console.log('500: Internal Server Error');
+          console.log('Api External: 500: Internal Server Error');
           break;
         default:
           console.log(`${response.status}: Unexpected response status`);

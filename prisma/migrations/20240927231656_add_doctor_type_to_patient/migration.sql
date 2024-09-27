@@ -37,6 +37,7 @@ CREATE TABLE "Patient" (
     "respoiratoryRate" TEXT,
     "arterialPressure" TEXT,
     "oxygenSaturation" TEXT,
+    "doctorType" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
     "departmentId" TEXT NOT NULL,

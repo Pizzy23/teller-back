@@ -116,18 +116,20 @@ export class PacientEntity {
     const prisma = await this.setDatabase(hospital);
     
     const professionsArray = this.cognitoStrategy.getProfessions();
-    
+  
     if (!professionsArray || professionsArray.length === 0) {
       return [];
     }
-    
-    return prisma.patient.findMany({
+  
+    const professionFilters = professionsArray.map((profession) => ({
+      doctorType: {
+        contains: profession,
+      },
+    }));
+  
+    const results = await prisma.patient.findMany({
       where: {
-        OR: professionsArray.map((profession) => ({
-          doctorType: {
-            contains: profession,
-          },
-        })),
+        OR: professionFilters,
       },
       include: {
         activeProblem: true,
@@ -140,7 +142,10 @@ export class PacientEntity {
         bloodGlucose: true,
       },
     });
+  
+    return results;
   }
+  
   
 
   async findById(hospital: string, id: string) {
@@ -338,8 +343,10 @@ export class PacientEntity {
       throw new HttpException('Invalid hospital', HttpStatus.BAD_REQUEST);
     }
 
-    const databaseUrl = `postgres://${process.env.DATABASE_USER}:${process.env.DATABASE_PASS}@${process.env.DATABASE_HOST}:${process.env.DATABASE_PORT}/${process.env.DATABASE_BANK}?schema=${hospitalData.DBName}`;
-
+    console.log(`Usando o esquema: ${hospitalData.DBName}`);
+  
+    const databaseUrl = `postgres://${process.env.DATABASE_USER}:${process.env.DATABASE_PASS}@${process.env.DATABASE_HOST}:${process.env.DATABASE_PORT}/${hospitalData.DBName}`;
+    console.log(`Database URL: ${databaseUrl}`);
     return await this.prisma.setDatabaseUrl(databaseUrl);
   }
 }
