@@ -34,8 +34,7 @@ export class PacientController {
     @Body() input: CreatePacientDto,
     @Req() req: Request,
   ): Promise<void> {
-    const userType = req.user?.type;
-    return this.service.createPacient(input, hospital, userType);
+    return this.service.createPacient(input, hospital);
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -50,8 +49,7 @@ export class PacientController {
     @Param('hospital') hospital: string,
     @Req() req: Request,
   ): Promise<any> {
-    const userType = req.user?.type;
-    return this.service.getAllPacients(hospital, userType);
+    return this.service.getAllPacients(hospital);
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -68,8 +66,7 @@ export class PacientController {
     @Param('id') id: string,
     @Req() req: Request,
   ): Promise<any> {
-    const userType = req.user?.type;
-    return this.service.getPacientById(id, hospital, userType);
+    return this.service.getPacientById(id, hospital);
   }
 
   @UseGuards(AuthGuard('jwt'))

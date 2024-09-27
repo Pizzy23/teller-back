@@ -1,31 +1,41 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus, Inject } from '@nestjs/common';
 import { PrismaService } from '../../../config';
 import { CreatePacientDto, UpdatePacientDto } from 'src/view/dto';
 import { Prisma, PrismaClient } from '@prisma/client';
 import { HospitalService } from 'src/context/service/hospital/hospital.service';
-
+import { CognitoStrategy } from 'src/config/middleware/cognito.strategy';
 @Injectable()
 export class PacientEntity {
   constructor(
     private prisma: PrismaService,
     private hospitalService: HospitalService,
+    @Inject(CognitoStrategy) private readonly cognitoStrategy: CognitoStrategy, 
   ) {}
 
-  async create(hospital: string, input: CreatePacientDto, userType: string) {
+  async create(hospital: string, input: CreatePacientDto) {
     const prisma = await this.setDatabase(hospital);
-
+  
+    const userSides = this.cognitoStrategy.getSides();
+  
+    if (!userSides || !userSides.includes(`side-${hospital}-${input.departmentId}`)) {
+      throw new Error('Access denied to the department');
+    }
+  
+    const professionsArray = this.cognitoStrategy.getProfessions();
+    const professions = professionsArray ? professionsArray.join(', ') : ''; // Converte o array em string
+  
     if (!input.departmentId) {
       throw new Error('Department ID is missing');
     }
-
+  
     const department = await prisma.department.findUnique({
       where: { id: input.departmentId },
     });
-
+  
     if (!department) {
       throw new Error('Department not found');
     }
-
+  
     const patientData: Prisma.PatientCreateInput = {
       fullName: input.fullName,
       medicalRecordNumber: input.medicalRecordNumber,
@@ -43,7 +53,7 @@ export class PacientEntity {
       respoiratoryRate: input.respoiratoryRate,
       arterialPressure: input.arterialPressure,
       oxygenSaturation: input.oxygenSaturation,
-      doctorType: userType,
+      doctorType: professions, 
       department: {
         connect: { id: input.departmentId },
       },
@@ -95,17 +105,29 @@ export class PacientEntity {
         })),
       },
     };
+  
     await prisma.patient.create({
       data: patientData,
     });
   }
+  
 
-  async findAll(hospital: string, userType: string) {
+  async findAll(hospital: string) {
     const prisma = await this.setDatabase(hospital);
-
+    
+    const professionsArray = this.cognitoStrategy.getProfessions();
+    
+    if (!professionsArray || professionsArray.length === 0) {
+      return [];
+    }
+    
     return prisma.patient.findMany({
       where: {
-        doctorType: userType,
+        OR: professionsArray.map((profession) => ({
+          doctorType: {
+            contains: profession,
+          },
+        })),
       },
       include: {
         activeProblem: true,
@@ -119,6 +141,7 @@ export class PacientEntity {
       },
     });
   }
+  
 
   async findById(hospital: string, id: string) {
     const prisma = await this.setDatabase(hospital);

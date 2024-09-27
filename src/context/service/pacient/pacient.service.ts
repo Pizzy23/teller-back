@@ -9,10 +9,10 @@ export class PacientService {
   async createPacient(
     input: CreatePacientDto,
     hospital: string,
-    userType: string,
+
   ): Promise<any> {
     try {
-      await this.repository.create(hospital, input, userType);
+      await this.repository.create(hospital, input);
       return 'Paciente Created';
     } catch (error) {
       console.log(error);
@@ -23,9 +23,9 @@ export class PacientService {
     }
   }
 
-  async getAllPacients(hospital: string, userType: string): Promise<any> {
+  async getAllPacients(hospital: string): Promise<any> {
     try {
-      return await this.repository.findAll(hospital, userType);
+      return await this.repository.findAll(hospital);
     } catch (error) {
       console.log(error);
       throw new HttpException(
@@ -38,7 +38,6 @@ export class PacientService {
   async getPacientById(
     id: string,
     hospital: string,
-    userType: string,
   ): Promise<any> {
     try {
       const patient = await this.repository.findById(hospital, id);

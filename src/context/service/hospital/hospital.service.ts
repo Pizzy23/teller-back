@@ -16,22 +16,62 @@ export class HospitalService {
 
   async getHospitalByName(name: string): Promise<any> {
     try {
-      const username = process.env.COGNITO_USERNAME;
-      const password = process.env.COGNITO_PASSWORD;
+      let token = this.cognitoStrategy.getToken();
 
-      const token = await this.cognitoStrategy.createToken(username, password);
+      // Verifique se o token está presente
+      if (!token) {
+        throw new HttpException(
+          'Token not found or invalid',
+          HttpStatus.UNAUTHORIZED,
+        );
+      }
+
+      token = 'Bearer ' + token;
 
       const response = await lastValueFrom(
-        this.httpService.get(`${process.env.API_URL}/hospital/name/${name}`, {
+        this.httpService.get(`${process.env.API_URL}/hospital/find/${name}`, {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: token,
           },
         }),
       );
 
+      switch (response.status) {
+        case 200:
+          console.log('200: Success');
+          break;
+        case 401:
+          console.log('401: Unauthorized');
+          break;
+        case 404:
+          console.log('404: Not Found');
+          break;
+        case 500:
+          console.log('500: Internal Server Error');
+          break;
+        default:
+          console.log(`${response.status}: Unexpected response status`);
+      }
+
       return response.data;
     } catch (error) {
-      throw new HttpException('Hospital not found', HttpStatus.NOT_FOUND);
+      console.error('Error in getHospitalByName:', error);
+
+      if (error.response && error.response.status) {
+        if (error.response.status === 401) {
+          throw new HttpException(
+            'Unauthorized access',
+            HttpStatus.UNAUTHORIZED,
+          );
+        } else if (error.response.status === 404) {
+          throw new HttpException('Hospital not found', HttpStatus.NOT_FOUND);
+        }
+      }
+
+      throw new HttpException(
+        'An error occurred',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 }
