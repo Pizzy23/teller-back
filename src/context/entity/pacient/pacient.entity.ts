@@ -23,7 +23,10 @@ export class PacientEntity {
 
     if (
       !userSides ||
-      !userSides.includes(`side-${hospital}-${department.side.toLowerCase()}`)
+      !userSides.includes(
+        `side-${hospital}-${department.side}`,
+      ) ||
+      !userSides.includes(department.side)
     ) {
       throw new Error('Access denied to the department');
     }
