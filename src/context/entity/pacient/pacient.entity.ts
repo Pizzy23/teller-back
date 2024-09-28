@@ -340,7 +340,8 @@ export class PacientEntity {
 
     console.log(`Usando o esquema: ${hospitalData.DBName}`);
   
-    const databaseUrl = `postgres://${process.env.DATABASE_USER}:${process.env.DATABASE_PASS}@${process.env.DATABASE_HOST}:${process.env.DATABASE_PORT}/${hospitalData.DBName}`;
+    const databaseUrl = `postgres://${process.env.DATABASE_USER}:${process.env.DATABASE_PASS}@${process.env.DATABASE_HOST}:${process.env.DATABASE_PORT}/teller?schema=${hospitalData.DBName}`;
+
     console.log(`Database URL: ${databaseUrl}`);
     return await this.prisma.setDatabaseUrl(databaseUrl);
   }
