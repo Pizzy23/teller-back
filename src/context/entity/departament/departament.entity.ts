@@ -71,8 +71,8 @@ export class DepartamentEntity {
     if (!hospitalData) {
       throw new HttpException('Invalid hospital', HttpStatus.BAD_REQUEST);
     }
-
-    const databaseUrl = `postgres://${process.env.DATABASE_USER}:${process.env.DATABASE_PASS}@${process.env.DATABASE_HOST}:${process.env.DATABASE_PORT}/${process.env.DATABASE_BANK}?schema=${hospitalData.DBName}`;
+  
+    const databaseUrl = `postgres://${process.env.DATABASE_USER}:${process.env.DATABASE_PASS}@${process.env.DATABASE_HOST}:${process.env.DATABASE_PORT}/teller?schema=${hospitalData.DBName}`;
 
     return await this.prisma.setDatabaseUrl(databaseUrl);
   }
