@@ -23,13 +23,12 @@ export class PacientEntity {
 
     if (
       !userSides ||
-      !userSides.includes(
-        `side-${hospital}-${department.side}`,
-      ) ||
-      !userSides.includes(department.side)
+      (!userSides.includes(`side-${hospital}-${department.side}`) &&
+       !userSides.includes(department.side))
     ) {
       throw new Error('Access denied to the department');
     }
+    
 
     const professionsArray = this.cognitoStrategy.getProfessions();
     const professions = professionsArray ? professionsArray.join(', ') : ''; // Converte o array em string
