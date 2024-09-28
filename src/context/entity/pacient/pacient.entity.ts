@@ -117,20 +117,7 @@ export class PacientEntity {
     
     const professionsArray = this.cognitoStrategy.getProfessions();
   
-    if (!professionsArray || professionsArray.length === 0) {
-      return [];
-    }
-  
-    const professionFilters = professionsArray.map((profession) => ({
-      doctorType: {
-        contains: profession,
-      },
-    }));
-  
-    const results = await prisma.patient.findMany({
-      where: {
-        OR: professionFilters,
-      },
+    const allPatients = await prisma.patient.findMany({
       include: {
         activeProblem: true,
         department: true,
@@ -142,10 +129,18 @@ export class PacientEntity {
         bloodGlucose: true,
       },
     });
+
+    if (!professionsArray || professionsArray.length === 0) {
+      return allPatients;
+    }
   
-    return results;
+    const filteredPatients = allPatients.filter(patient => {
+      return professionsArray.some(profession => patient.doctorType?.includes(profession));
+    });
+  
+    return filteredPatients;
   }
-  
+
   
 
   async findById(hospital: string, id: string) {
