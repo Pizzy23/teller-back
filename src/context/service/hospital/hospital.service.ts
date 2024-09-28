@@ -17,8 +17,7 @@ export class HospitalService {
   async getHospitalByName(name: string): Promise<any> {
     try {
       let token = this.cognitoStrategy.getToken();
-
-      // Verifique se o token está presente
+    
       if (!token) {
         throw new HttpException(
           'Token not found or invalid',
@@ -55,8 +54,6 @@ export class HospitalService {
 
       return response.data;
     } catch (error) {
-      console.error('Error in getHospitalByName:', error);
-
       if (error.response && error.response.status) {
         if (error.response.status === 401) {
           throw new HttpException(
